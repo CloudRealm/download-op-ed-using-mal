@@ -1,4 +1,5 @@
 """
+to download audio, you will.need ffmpeg
 requirement:
     python 3.4+
 packages:
@@ -7,7 +8,7 @@ packages:
     youtube_search (youtube-search)
 """
 from __future__ import unicode_literals
-import gzip,os,bs4,youtube_dl
+import gzip,os,bs4,youtube_dl, imageio_ffmpeg
 from youtube_search import YoutubeSearch
 from pprint import pprint
 
@@ -55,7 +56,16 @@ def search_for_videolinks(videonames,rejected_ids=[],max_searched=10):
                 yield result
                 break
 
-def download_from_youtube(link,filename,folder='.',ydl_opts={}):
+def download_from_youtube(link,filename,folder='.',download_audio=True,ydl_opts={}):
+    if download_audio:
+        ydl_opts.update({
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+        })
     ydl_opts["outtmpl"] = folder+'/'+filename+".%(ext)s"
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download([link])
@@ -68,6 +78,7 @@ ignore_already_downloaded=True,
 minimum_score=0,
 exclude_dropped=True,exclude_planned=True,
 exclude_anime=[],
+download_audio=False,
 use_abbreviation=False,
 rejected_yt_ds=[],max_yt_searched=10,
 ydl_opts={}
@@ -98,10 +109,12 @@ ydl_opts={}
         
         link = 'http://www.youtube.com'+i["link"]
         try:
-            download_from_youtube(link,name,save_to_folder,ydl_opts)
+            download_from_youtube(link,name,save_to_folder,download_audio,ydl_opts)
         except youtube_dl.utils.DownloadError as e:
             print(e)
-            print("To solve this error, change your internet connection or try again in a few minutes.")
+            print("You seem to be either missing ffmpeg or you are not abel to connect to the servers\n" +
+                     "To solve this error, either change your internet connection/try again in a few minutes or\n" +
+                     "download ffmpeg using external sources.")
             
 
 if __name__ == '__main__':
