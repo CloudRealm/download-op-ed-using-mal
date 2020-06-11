@@ -8,9 +8,8 @@ packages:
     youtube_search (youtube-search)
 """
 from __future__ import unicode_literals
-import gzip,os,bs4,youtube_dl, imageio_ffmpeg
+import gzip,os,bs4,youtube_dl
 from youtube_search import YoutubeSearch
-from pprint import pprint
 
 def search_for_export_file():
     for i in os.listdir():
