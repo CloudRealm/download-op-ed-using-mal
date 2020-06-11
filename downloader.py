@@ -1,5 +1,5 @@
 """
-to download audio, you will.need ffmpeg
+to download audio, you will need ffmpeg
 requirement:
     python 3.4+
 packages:
@@ -111,9 +111,9 @@ ydl_opts={}
             download_from_youtube(link,name,save_to_folder,download_audio,ydl_opts)
         except youtube_dl.utils.DownloadError as e:
             print(e)
-            print("You seem to be either missing ffmpeg or you are not abel to connect to the servers\n" +
-                     "To solve this error, either change your internet connection/try again in a few minutes or\n" +
-                     "download ffmpeg using external sources.")
+            print("You seem to be either missing ffmpeg or you are not able to connect to the servers\n" +
+                  "To solve this error, either change your internet connection/try again in a few minutes or\n" +
+                  "download ffmpeg using external sources.")
             
 
 if __name__ == '__main__':
