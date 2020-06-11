@@ -99,12 +99,12 @@ ydl_opts={}
         
     print("getting anime names")
     data = get_anime_names(data,minimum_score,exclude_dropped,exclude_planned,exclude_anime)
-    
     data = get_all_oped_names(data,use_abbreviation)
-    print("searching anime songs\n")
     
+    print("searching anime songs\n")
     search_results = search_for_videolinks(data,rejected_yt_ds,max_yt_searched)
     for name,i in zip(data,search_results):
+        
         print("found",i["title"],"with id:",i["id"])
         
         link = 'http://www.youtube.com'+i["link"]
