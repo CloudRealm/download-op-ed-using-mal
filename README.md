@@ -3,8 +3,7 @@ This project allows you to automaticaly download opening and ending songs from a
 # how to use
 - clone this repository or download all the required files
 - do `pip install  -r requirements.txt` to install all required libraries
->
 - import downloader.py
 - run downloader.main, add optional parameters
-> OR
-- run downloader.py in console, but you can't change any settings (for now)
+
+you can also run downloader.py in console, but you can't change any settings (for now)
