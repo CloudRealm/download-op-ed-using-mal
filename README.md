@@ -8,9 +8,9 @@ This project allows you to automaticaly download opening and ending songs from a
 
 you can also run downloader.py in console, but you can't change any settings (for now)
 # possible errors
-cannot download audio files
+- cannot download audio files
 > you are most likely missing ffmpeg, try downloading it externaly
-files are  not downloading
+- files are  not downloading
 > there's a possibility you are being rate limited, try waiting a while
 # TODO
 - higher usability in console
