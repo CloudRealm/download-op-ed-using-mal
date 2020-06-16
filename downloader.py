@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 import gzip,os,bs4,sys,requests,string,argparse
-from pprint import pprint
 
 
 APISETTINGS = {
