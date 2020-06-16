@@ -6,7 +6,6 @@ APISETTINGS = {
     "oped":["OP","ED"],
     "site parse":"https://animethemes-api.herokuapp.com/id/{0}/",
     "audio site":"https://animethemes-api.herokuapp.com/id/{0}/{1}/audio",
-    "version priority":1,
     "filetypes":{"audio":".mp3","video":".webm"}
 }
 
@@ -72,7 +71,7 @@ def filter_anime(
             
 
     
-def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downloaded=False,folder='.'):
+def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downloaded=False,preferred_version=1,folder='.'):
     try:
         os.mkdir(folder)
     except:
@@ -80,7 +79,11 @@ def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downlo
     already_downloaded = os.listdir(folder)
     
     site = APISETTINGS["site parse"].format(malid)
-    data = requests.get(site).json()
+    try:
+        data = requests.get(site).json()
+    except:
+        print(f"[Error] API error: {malid} does bot have an entry in {site}")
+        return []
     
     anime_name = data["name"]
     for song in data["themes"]:
@@ -88,7 +91,7 @@ def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downlo
         if ' ' in song_type_version:
             song_type,version = song_type_version.split(' ');
             version = int(version[1:])
-            if version != APISETTINGS["version priority"]:
+            if version != preferred_version:
                 continue
         else:
             song_type = song_type_version
@@ -116,7 +119,10 @@ def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downlo
         yield mirror,filename
         
 def download_anime(site,filename,folder="."):
-    response = requests.get(site, allow_redirects=True)
+    try:
+        response = requests.get(site, allow_redirects=True)
+    except:
+        return f"No file found at {site}"
     if response.status_code != 200:
         return response.status_code
     filename = f'{folder}/{filename}'
@@ -136,7 +142,8 @@ def main(
     exclude_dropped=True,exclude_planned=True,
     exclude_anime=[],
     download_audio=False,
-    download_HD=False
+    download_HD=False,
+    preferred_version=1,
 ):
     data = open_export_file(export_file)
     
@@ -146,7 +153,7 @@ def main(
     print("[read] getting anime names")
     for malid in filter_anime(data,minimum_score,exclude_dropped,exclude_planned,exclude_anime):
         print("[parse]",malid)
-        for site,filename in api_parse(malid,download_HD,download_audio,ignore_already_downloaded,folder):
+        for site,filename in api_parse(malid,download_HD,download_audio,ignore_already_downloaded,preferred_version,folder):
             print("[download]",filename)
             response = download_anime(site,filename,folder)
             if response:
@@ -175,6 +182,8 @@ It then downloads it in either mp3 or webm file format, allowing you to get that
                         help='Download mp3 instead of video.')
     parser.add_argument('--q', metavar='quality', type=bool, default=False, const=True, nargs='?',
                         help='Download videos in higher quality.')
+    parser.add_argument('-v', metavar='preferred_version', type=int, default=1,
+                        help='Preferred version to download, used to download openings that otherwise cause problems')
     parser.add_argument('-e', metavar='excluded', type=str, nargs='+', default=[],
                         help='All anime that should be excluded from download, can be also MAL id.')
     
@@ -192,7 +201,8 @@ def convert_args(args):
         'exclude_planned':args.p,
         'exclude_anime':args.e,
         'download_audio':args.a,
-        'download_HD':args.q
+        'download_HD':args.q,
+        'preferred_version':args.v
     }
         
 if __name__ == '__main__':
