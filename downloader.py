@@ -97,6 +97,7 @@ def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downlo
             song_type = song_type_version
 
         title = song["title"]
+        video_is_hd = False
         if download_audio:
             mirror = APISETTINGS["audio site"].format(malid,song_type_version)
             filetype = APISETTINGS["filetypes"]["audio"]
@@ -107,7 +108,6 @@ def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downlo
                 video_is_hd = download_HD
             else:
                 mirror = mirror[0]["mirrorUrl"]
-                video_is_hd = False
             filetype = APISETTINGS["filetypes"]["video"]
             
         filename = f"{anime_name} {song_type} ({title}){' HD' if video_is_hd else ''}"
