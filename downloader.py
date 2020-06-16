@@ -17,10 +17,10 @@ def make_printable(s):
 def open_export_file(export_file=None):
     data = None
     if export_file is None:
-        print("searching for an export file")
+        print("[read] searching for an export file")
         export_file = search_for_export_file()
         if export_file is None:
-            print("no export file found, searching for an unzipped export file")
+            print("[read] no export file found, searching for an unzipped export file")
             data = open_unzipped_export_file()
             if data is None:
                 raise Exception("No export file found, make sure the export file looks like this: 'animelist_<date>.xml.gz'")
@@ -90,6 +90,8 @@ def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downlo
             version = int(version[1:])
             if version != APISETTINGS["version priority"]:
                 continue
+        else:
+            song_type = song_type_version
 
         title = song["title"]
         if download_audio:
@@ -115,11 +117,14 @@ def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downlo
         
 def download_anime(site,filename,folder="."):
     response = requests.get(site, allow_redirects=True)
+    if response.status_code != 200:
+        return response.status_code
     filename = f'{folder}/{filename}'
     
     with open(filename,'wb') as file:
         for chunk in response:
             file.write(chunk)
+    return False
 
         
     
@@ -135,15 +140,17 @@ def main(
 ):
     data = open_export_file(export_file)
     
-    print("reading file")
+    print("[read] reading file")
     data = get_all_anime_data(data)
         
-    print("getting anime names")
+    print("[read] getting anime names")
     for malid in filter_anime(data,minimum_score,exclude_dropped,exclude_planned,exclude_anime):
         print("[parse]",malid)
         for site,filename in api_parse(malid,download_HD,download_audio,ignore_already_downloaded,folder):
             print("[download]",filename)
-            download_anime(site,filename,folder)
+            response = download_anime(site,filename,folder)
+            if response:
+                print(f"[Error] connection error: {response}")
        
 def get_parser():
     parser = argparse.ArgumentParser(description="""
