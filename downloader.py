@@ -163,7 +163,7 @@ def main(
             print("[download]",filename)
             response = download_anime(site,filename,folder)
             if response:
-                print(f"[Error] connection error: {response}")
+                print(f"[Error] connection/API error: {response}")
        
 def get_parser():
     parser = argparse.ArgumentParser(description="""
