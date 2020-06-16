@@ -25,7 +25,7 @@ def open_export_file(export_file=None):
                 raise Exception("No export file found, make sure the export file looks like this: 'animelist_<date>.xml.gz'")
     
     if data is None:
-        print("unpacking",export_file)
+        print("[read] unpacking",export_file)
         data = unpack_gzfile(export_file)
     
     return data
@@ -85,6 +85,10 @@ def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downlo
         print(f"[Error] API error: {malid} does bot have an entry in {site}")
         return []
     
+    if "name" not in data:
+        print(f"[Error] API error: {malid} has an empty entry in {site}")
+        return []
+    
     anime_name = data["name"]
     for song in data["themes"]:
         song_type_version = song["type"]
@@ -126,7 +130,7 @@ def download_anime(site,filename,folder="."):
     except:
         return f"No file found at {site}"
     if response.status_code != 200:
-        return response.status_code
+        return f"{response.status_code} in {site}"
     filename = f'{folder}/{filename}'
     
     with open(filename,'wb') as file:
