@@ -5,9 +5,9 @@ import gzip,os,bs4,sys,requests,string,argparse
 APISETTINGS = {
     "oped":["OP","ED"],
     "site parse":"https://animethemes-api.herokuapp.com/id/{0}/",
-    "site":"https://animethemes-api.herokuapp.com/id/{0}/{1}/",
-    "audio":"audio/",
-    "version priority":1
+    "audio site":"https://animethemes-api.herokuapp.com/id/{0}/{1}/audio",
+    "version priority":1,
+    "filetypes":{"audio":".mp3","video":".webm"}
 }
 
 def make_printable(s):
@@ -72,7 +72,11 @@ def filter_anime(
             
 
     
-def api_parse(malid,download_HD=False,ignore_already_downloaded=False,folder='.'):
+def api_parse(malid,download_HD=False,download_audio=False,ignore_already_downloaded=False,folder='.'):
+    try:
+        os.mkdir(folder)
+    except:
+        pass
     already_downloaded = os.listdir(folder)
     
     site = APISETTINGS["site parse"].format(malid)
@@ -80,23 +84,27 @@ def api_parse(malid,download_HD=False,ignore_already_downloaded=False,folder='.'
     
     anime_name = data["name"]
     for song in data["themes"]:
-        song_type = song["type"]
-        if ' ' in song_type:
-            song_type,version = song_type.split(' ');
+        song_type_version = song["type"]
+        if ' ' in song_type_version:
+            song_type,version = song_type_version.split(' ');
             version = int(version[1:])
             if version != APISETTINGS["version priority"]:
                 continue
 
         title = song["title"]
-        
-        mirror = song["mirror"]
-        if len(mirror) > 1:
-            mirror = mirror[download_HD]["mirrorUrl"]
+        if download_audio:
+            mirror = APISETTINGS["audio site"].format(malid,song_type_version)
+            filetype = APISETTINGS["filetypes"]["audio"]
         else:
-            mirror = mirror[0]["mirrorUrl"]
-        
+            mirror = song["mirror"]
+            if len(mirror) > 1:
+                mirror = mirror[download_HD]["mirrorUrl"]
+            else:
+                mirror = mirror[0]["mirrorUrl"]
+            filetype = APISETTINGS["filetypes"]["video"]
+            
         filename = f"{anime_name} {song_type} ({title}){' HD' if download_HD else ''}"
-        filename += '.'+mirror.split('.')[-1]
+        filename += filetype
         filename = make_printable(filename)
         
         if ignore_already_downloaded:
@@ -105,7 +113,7 @@ def api_parse(malid,download_HD=False,ignore_already_downloaded=False,folder='.'
         
         yield mirror,filename
         
-def download_anime(site,filename,folder=".",audio=False):
+def download_anime(site,filename,folder="."):
     response = requests.get(site, allow_redirects=True)
     filename = f'{folder}/{filename}'
     
@@ -133,9 +141,9 @@ def main(
     print("getting anime names")
     for malid in filter_anime(data,minimum_score,exclude_dropped,exclude_planned,exclude_anime):
         print("[parse]",malid)
-        for site,filename in api_parse(malid,download_HD,ignore_already_downloaded,folder):
+        for site,filename in api_parse(malid,download_HD,download_audio,ignore_already_downloaded,folder):
             print("[download]",filename)
-            download_anime(site,filename,folder,download_audio)
+            download_anime(site,filename,folder)
        
 def get_parser():
     parser = argparse.ArgumentParser(description="""
@@ -156,7 +164,7 @@ It then downloads it in either mp3 or webm file format, allowing you to get that
                         help='Include anime that has been dropped.')
     parser.add_argument('--p', metavar='planned', type=bool, default=True, const=False, nargs='?',
                         help='Include anime that hasn\'t been watched yet.')
-    parser.add_argument('--a', metavar='audio', type=bool, default=True, const=False, nargs='?',
+    parser.add_argument('--a', metavar='audio', type=bool, default=False, const=True, nargs='?',
                         help='Download mp3 instead of video.')
     parser.add_argument('--q', metavar='quality', type=bool, default=False, const=True, nargs='?',
                         help='Download videos in higher quality.')
