@@ -14,6 +14,22 @@ def make_printable(s):
     return ''.join(char for char in s if char in string.printable)
 
 
+def open_export_file(export_file=None):
+    data = None
+    if export_file is None:
+        print("searching for an export file")
+        export_file = search_for_export_file()
+        if export_file is None:
+            print("no export file found, searching for an unzipped export file")
+            data = open_unzipped_export_file()
+            if data is None:
+                raise Exception("No export file found, make sure the export file looks like this: 'animelist_<date>.xml.gz'")
+    
+    if data is None:
+        print("unpacking",export_file)
+        data = unpack_gzfile(export_file)
+    
+    return data
 
 def search_for_export_file():
     for i in os.listdir():
@@ -27,7 +43,7 @@ def unpack_gzfile(filename):
 def open_unzipped_export_file():
     for i in os.listdir():
         if i.startswith("animelist") and i.endswith(".xml"):
-            with gzip.open(filename,'r') as file:
+            with gzip.open(i,'r') as file:
                 return file.read()
 
 def get_all_anime_data(xml_file):
@@ -109,19 +125,7 @@ def main(
     download_audio=False,
     download_HD=False
 ):
-    data = None
-    if export_file is None:
-        print("searching for an export file")
-        export_file = search_for_export_file()
-        if export_file is None:
-            print("no export file found, searching for an unzipped export file")
-            data = open_unzipped_export_file()
-            if data is None:
-                raise Exception("No export file found, make sure the export file looks like this: 'animelist_<date>.xml.gz'")
-    
-    if data is None:
-        print("unpacking",export_file)
-        data = unpack_gzfile(export_file)
+    data = open_export_file(export_file)
     
     print("reading file")
     data = get_all_anime_data(data)
@@ -177,7 +181,6 @@ def convert_args(args):
     }
         
 if __name__ == '__main__':
-    
     parser = get_parser()
     args = parser.parse_args(sys.argv[1:])
     args = convert_args(args)
