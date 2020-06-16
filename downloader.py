@@ -27,7 +27,8 @@ def unpack_gzfile(filename):
 def open_unzipped_export_file():
     for i in os.listdir():
         if i.startswith("animelist") and i.endswith(".xml"):
-            return i
+            with gzip.open(filename,'r') as file:
+                return file.read()
 
 def get_all_anime_data(xml_file):
     data = bs4.BeautifulSoup(xml_file,features="html.parser")
