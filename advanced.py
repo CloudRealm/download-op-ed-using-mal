@@ -1,9 +1,32 @@
 from downloader import *
 from requests import get
 import re
+from __future__ import unicode_literals
+import gzip,os,bs4
 
 API_OPED = ["OP","ED"]
 
+def search_for_export_file():
+    for i in os.listdir():
+        if i.startswith("animelist") and i.endswith(".xml.gz"):
+            return i
+
+def unpack_gzfile(filename):
+    with gzip.open(filename,'r') as file:
+        return file.read()
+
+def get_all_anime_data(xml_file):
+    data = bs4.BeautifulSoup(xml_file,features="html.parser")
+    return data.findAll("anime")
+
+def get_all_oped_names(animenames,shortened=False):
+    output = []
+    for i in animenames:
+        if shortened:
+            output += [i+" op",i+" ed"]
+        else:
+            output += [i+" opening",i+" ending"]
+    return output
 def filter_anime(animedata,minimum_score=0,exclude_dropped=True,exclude_planned=True,exclude_anime=[]):
     for anime in animedata:
         status = anime.find("my_status").text
