@@ -21,12 +21,10 @@ def open_export_file(export_file=None):
         fprint("read", f"searching for an export file")
         export_file = search_for_export_file()
         if export_file is None:
-            fprint(
-                "read", f"no export file found, searching for an unzipped export file")
+            fprint("read", f"no export file found, searching for an unzipped export file")
             data = open_unzipped_export_file()
             if data is None:
-                raise Exception(
-                    "No export file found, make sure the export file looks like this: 'animelist_<date>.xml.gz'")
+                raise Exception("No export file found, make sure the export file looks like this: 'animelist_<date>.xml.gz'")
 
     if data is None:
         fprint("read", f"unpacking", export_file)
@@ -43,7 +41,7 @@ def unpack_gzfile(filename):
 def open_unzipped_export_file():
     for i in os.listdir():
         if i.startswith("animelist") and i.endswith(".xml"):
-            with gzip.open(i, 'r') as file:
+            with open(i, 'r') as file:
                 return file.read()
 
 
@@ -63,7 +61,7 @@ def convert_status(status):
         None: 5,
         "Plan to Watch": 6,
         "All Anime": 7
-    }
+    }[status]
 
 
 def filter_anime(
