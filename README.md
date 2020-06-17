@@ -16,7 +16,8 @@ Note that owning and distributing the program itself is allowed.
 usage: downloader.py [-h] [-f export] [-u username] [-F folder] [--s [skip]]
                      [-m min_score] [--d [dropped]] [--p [planned]]
                      [--a [audio]] [--q [quality]] [-v preferred_version]
-                     [-e excluded [excluded ...]]
+                     [-e excluded [excluded ...]] [-bc banned_chars]
+                     [--ascii [only_ascii_chars]] [-ml max_file_lenght]
 
 Download anime openings and endings using your AML username or a MAL export
 file and animethemes.moe. By searching through your animelist and picking out
@@ -42,7 +43,14 @@ optional arguments:
   -e excluded [excluded ...]
                         All anime that should be excluded from download, can
                         be also MAL id.
+  -bc banned_chars      All banned characters, defaults to <>:"/\|?*, because
+                        you are currently using a Windows os
+  --ascii [only_ascii_chars]
+                        Creates files with only ascii characters in the name.
+  -ml max_file_lenght   Limits the lenght of a file (excluding the extension),
+                        mostly good for Mac.
 ```
+> ran on windows
 # TODO
 - smarter file recognition
 - code optimizations
