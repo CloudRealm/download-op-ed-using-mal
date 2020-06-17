@@ -7,6 +7,7 @@ import requests
 import string
 import argparse
 import json
+import platform
 from pulled import *
 from exported import *
 from printer import *
@@ -18,6 +19,15 @@ APISETTINGS = {
     "audio site": "https://animethemes-api.herokuapp.com/id/{0}/{1}/audio",
     "filetypes": {"audio": ".mp3", "video": ".webm"}
 }
+
+system = platform.system()
+if system == "Darwin": system = "Mac"
+
+BANNED_CHARS = {
+    "Linux":"/",
+    "Windows":'<>:"/\\|?*',
+    "Mac":":"
+}[system]
 
 
 def api_check_errors(malid):
@@ -36,7 +46,8 @@ def api_check_errors(malid):
     return data
 
 
-def api_parse(malid, download_HD=False, download_audio=False, ignore_already_downloaded=False, preferred_version=1, folder='.'):
+def api_parse(malid, download_HD=False, download_audio=False, ignore_already_downloaded=False, 
+              preferred_version=1, folder='.', banned_chars='/', only_ascii=False, max_file_lenght=-1):
     data = api_check_errors(malid)
     if data is None:
         return []
@@ -74,10 +85,17 @@ def api_parse(malid, download_HD=False, download_audio=False, ignore_already_dow
                 mirror = mirror[0]["mirrorUrl"]
             filetype = APISETTINGS["filetypes"]["video"]
 
+
         filename = f"{anime_name} {song_type} ({title}){' HD' if video_is_hd else ''}"
+        
+        if only_ascii:
+            filename = ''.join(char for char in filename if char in string.printable)
+        filename = ''.join(char for char in filename if char not in BANNED_CHARS)
+            
+        if max_file_lenght > 0:
+            filename = filename[:max_file_lenght]
+        
         filename += filetype
-        filename = ''.join(
-            char for char in filename if char in string.printable)
 
         if ignore_already_downloaded:
             if filename in already_downloaded:
@@ -94,7 +112,7 @@ def download_anime(site, filename, folder="."):
     if response.status_code != 200:
         return f"{response.status_code} in {site}"
     filename = f'{folder}/{filename}'
-
+    
     with open(filename, 'wb') as file:
         for chunk in response:
             file.write(chunk)
@@ -111,7 +129,9 @@ def main(
     exclude_anime=[],
     download_audio=False,
     download_HD=False,
+    banned_chars='/',only_ascii=False,
     preferred_version=1,
+    max_file_lenght=-1
 ):
     fprint("start","Launching program")
     if mal_username is None:
@@ -123,7 +143,9 @@ def main(
         fprint("read", f"getting anime names")
         for malid in filter_anime(data, minimum_score, exclude_dropped, exclude_planned, exclude_anime):
 
-            for site, filename in api_parse(malid, download_HD, download_audio, ignore_already_downloaded, preferred_version, folder):
+            for site, filename in api_parse(
+                malid, download_HD, download_audio, ignore_already_downloaded, 
+                preferred_version, folder, banned_chars, only_ascii):
 
                 fprint("download", filename)
                 response = download_anime(site, filename, folder)
@@ -137,7 +159,7 @@ def main(
         fprint("read", f"getting anime names")
         for malid in website_filter_anime(data, minimum_score, exclude_dropped, exclude_planned, exclude_anime):
 
-            for site, filename in api_parse(malid, download_HD, download_audio, ignore_already_downloaded, preferred_version, folder):
+            for site, filename in api_parse(malid, download_HD, download_audio, ignore_already_downloaded, preferred_version, folder, banned_chars, only_ascii, max_file_lenght):
 
                 fprint("download", filename)
                 response = download_anime(site, filename, folder)
@@ -146,6 +168,7 @@ def main(
 
 
 def get_parser():
+    
     parser = argparse.ArgumentParser(description="""
 Download anime openings and endings using your AML username or a MAL export file and animethemes.moe.
 By searching through your animelist and picking out every anime, this program finds all of your liked anime.
@@ -170,10 +193,18 @@ It then downloads it in either mp3 or webm file format, allowing you to get that
                         help='Download mp3 instead of video.')
     parser.add_argument('--q', metavar='quality', type=bool, default=False, const=True, nargs='?',
                         help='Download videos in higher quality.')
+    
     parser.add_argument('-v', metavar='preferred_version', type=int, default=1,
                         help='Preferred version to download, used to download openings that otherwise cause problems')
     parser.add_argument('-e', metavar='excluded', type=str, nargs='+', default=[],
                         help='All anime that should be excluded from download, can be also MAL id.')
+    
+    parser.add_argument('-bc', metavar='banned_chars', type=str, default=BANNED_CHARS,
+                        help=f'All banned characters, defaults to {BANNED_CHARS}, because you are currently using a {system} os')
+    parser.add_argument('--ascii', metavar='only_ascii_chars', type=bool, default=False, const=True, nargs='?',
+                        help='Creates files with only ascii characters in the name.')
+    parser.add_argument('-ml', metavar='max_file_lenght', type=int, default=-1,
+                        help='Limits the lenght of a file (excluding the extension), mostly good for Mac.')
 
     return parser
 
@@ -195,7 +226,10 @@ def convert_args(args):
         'exclude_anime': args.e,
         'download_audio': args.a,
         'download_HD': args.q,
-        'preferred_version': args.v
+        'banned_chars':args.bc,
+        'only_ascii':args.ascii,
+        'preferred_version': args.v,
+        'max_file_lenght': args.ml
     }
 
 
