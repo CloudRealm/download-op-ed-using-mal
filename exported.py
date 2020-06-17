@@ -61,7 +61,7 @@ def convert_status(status):
         None: 5,
         "Plan to Watch": 6,
         "All Anime": 7
-    }
+    }[status]
 
 
 def filter_anime(
