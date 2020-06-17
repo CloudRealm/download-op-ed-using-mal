@@ -4,7 +4,7 @@ This project allows you to automaticaly download opening and ending songs from a
 All videos are downloaded from animethemes.moe and originally belong to studios who made them. You are not allowed to distribute any videos downloaded, unless you have permission from the studios that made it and animethemes.moe.
 Note that owning and distributing the program itself is allowed.
 # how to install
-- clone this repository or download all the required files
+- clone this repository or download `src`
 - do `pip install  -r requirements.txt` to install all required libraries
 # usage
 1) enter your mal username or export your animelist and place it into the same folder as downloader.py
