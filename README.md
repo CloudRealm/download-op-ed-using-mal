@@ -14,10 +14,11 @@ Note that owning and distributing the program itself is allowed.
 # arguments
 ```arg
 usage: downloader.py [-h] [-f export] [-u username] [-F folder] [--s [skip]]
-                     [-m min_score] [--d [dropped]] [--p [planned]]
-                     [--a [audio]] [--q [quality]] [-v preferred_version]
-                     [-e excluded [excluded ...]] [-bc banned_chars]
-                     [--ascii [only_ascii_chars]] [-ml max_file_lenght]
+                     [-m min_score] [-p min_priority] [--d [dropped]]
+                     [--p [planned]] [--a [audio]] [--q [quality]]
+                     [-v preferred_version] [-e excluded [excluded ...]]
+                     [-bc banned_chars] [--ascii [only_ascii_chars]]
+                     [-ml max_file_lenght]
 
 Download anime openings and endings using your AML username or a MAL export
 file and animethemes.moe. By searching through your animelist and picking out
@@ -34,7 +35,9 @@ optional arguments:
   --s [skip]            Skip songs that are already downloaded.
   -m min_score          Minimum score that has to be given to a show to be
                         downloaded.
-  --d [dropped]         Include anime that has been dropped.
+  -p min_priority       Minimum priority that has to be given to a show to be
+                        downloaded. (Low=1,Normal=2,High=3)
+  --d [dropped]         Include anime that has been dropped
   --p [planned]         Include anime that hasn't been watched yet.
   --a [audio]           Download mp3 instead of video.
   --q [quality]         Download videos in higher quality.
