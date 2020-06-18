@@ -56,7 +56,7 @@ def convert_status(status):
     return {
         "Watching": 1,
         "Completed": 2,
-        "On hold": 3,
+        "On-Hold": 3,
         "Dropped": 4,
         None: 5,
         "Plan to Watch": 6,
