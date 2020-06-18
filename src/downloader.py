@@ -124,7 +124,7 @@ def main(
     mal_username=None,
     folder='.',
     ignore_already_downloaded=False,
-    minimum_score=0,
+    minimum_score=0,minimum_priority=0,
     exclude_dropped=True, exclude_planned=True,
     exclude_anime=[],
     download_audio=False,
@@ -157,7 +157,7 @@ def main(
         data = get_data_from_mal(mal_username)
 
         fprint("read", f"getting anime names")
-        for malid in website_filter_anime(data, minimum_score, exclude_dropped, exclude_planned, exclude_anime):
+        for malid in website_filter_anime(data, minimum_score, minimum_priority, exclude_dropped, exclude_planned, exclude_anime):
 
             for site, filename in api_parse(malid, download_HD, download_audio, ignore_already_downloaded, preferred_version, folder, banned_chars, only_ascii, max_file_lenght):
 
@@ -183,12 +183,17 @@ It then downloads it in either mp3 or webm file format, allowing you to get that
                         help='Folder to save the integers into.')
     parser.add_argument('--s', metavar='skip', type=bool, default=False, const=True, nargs='?',
                         help='Skip songs that are already downloaded.')
+    
     parser.add_argument('-m', metavar='min_score', type=int, default=0,
                         help='Minimum score that has to be given to a show to be downloaded.')
+    parser.add_argument('-p', metavar='min_priority', type=int, default=0,
+                        help='Minimum priority that has to be given to a show to be downloaded. (Low=1,Normal=2,High=3)')
+    
     parser.add_argument('--d', metavar='dropped', type=bool, default=True, const=False, nargs='?',
-                        help='Include anime that has been dropped.')
+                        help='Include anime that has been dropped')
     parser.add_argument('--p', metavar='planned', type=bool, default=True, const=False, nargs='?',
-                        help='Include anime that hasn\'t been watched yet.')
+                        help="Include anime that hasn't been watched yet.")
+    
     parser.add_argument('--a', metavar='audio', type=bool, default=False, const=True, nargs='?',
                         help='Download mp3 instead of video.')
     parser.add_argument('--q', metavar='quality', type=bool, default=False, const=True, nargs='?',
@@ -210,17 +215,26 @@ It then downloads it in either mp3 or webm file format, allowing you to get that
 
 
 def convert_args(args):
+    
     if args.a and args.q:
         raise ValueError("Cannot download HD audio files.")
-    elif args.f is not None and args.u is not None:
-        raise ValueError(
-            "Cannot search myanimelist.net and read a file at the same time.")
+    
+    elif args.u:
+        if args.f:
+            raise ValueError("Cannot search myanimelist.net and read a file at the same time.")
+    elif args.p:
+        if args.f:
+            raise ValueError("Cannot check priority with an exported anime list.")
+        else:
+            raise ValueError("Cannot check priority without a MAL username.")
+        
     return {
         'export_file': args.f,
         'mal_username': args.u,
         'folder': args.F,
         'ignore_already_downloaded': args.s,
         'minimum_score': args.m,
+        'minimum_priority':args.p,
         'exclude_dropped': args.d,
         'exclude_planned': args.p,
         'exclude_anime': args.e,
