@@ -57,3 +57,5 @@ optional arguments:
 - network optimizations
 - colored printing
 - higher usability with importing
+- filter by priority
+- download only one song
