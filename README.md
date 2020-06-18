@@ -54,6 +54,10 @@ optional arguments:
                         mostly good for Mac.
 ```
 > ran on windows
+
+my personal settings if you don't know what to do:
+AUDIO: `-u="sadru" -F="audio" --a --s`
+VIDEO: `-u="sadru" -F="video" --q --s`
 # TODO
 - smarter file recognition
 - code optimizations
