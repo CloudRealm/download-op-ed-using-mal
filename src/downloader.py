@@ -8,17 +8,17 @@ import string
 import argparse
 import json
 import platform
-from pulled import *
-from exported import *
+from mal_pulled import *
+from mal_exported import *
 from printer import *
-
+from al_pulled import *
 
 APISETTINGS = {
     "oped": ["OP", "ED"],
     "site parse": "https://animethemes-api.herokuapp.com/id/{0}/",
     "audio site": "https://animethemes-api.herokuapp.com/id/{0}/{1}/audio",
     "filetypes": {"audio": ".mp3", "video": ".webm"}
-}
+} 
 
 system = platform.system()
 if system == "Darwin": system = "Mac"
@@ -121,7 +121,7 @@ def download_anime(site, filename, folder="."):
 
 def main(
     export_file=None,
-    mal_username=None,
+    mal_username=None,al_username=None,
     folder='.',
     ignore_already_downloaded=False,
     minimum_score=0,minimum_priority=0,
@@ -134,14 +134,43 @@ def main(
     max_file_lenght=-1
 ):
     fprint("start","Launching program")
-    if mal_username is None:
+    if mal_username is not None:
+        fprint("read", f"reading anime list of {mal_username} (MAL)")
+        data = get_data_from_mal(mal_username)
+
+        fprint("read", f"getting anime names")
+        for malid in mal_filter_anime(data, minimum_score, minimum_priority, exclude_dropped, exclude_planned, exclude_anime):
+
+            for site, filename in api_parse(malid, download_HD, download_audio, ignore_already_downloaded, preferred_version, folder, banned_chars, only_ascii, max_file_lenght):
+
+                fprint("download", filename)
+                response = download_anime(site, filename, folder)
+                if response:
+                    fprint("Error", f"connection/API error: {response}") 
+                    
+    elif al_username is not None:
+        fprint("read", f"reading anime list of {mal_username} (AniList)")
+        data = get_data_from_al(al_username)
+
+        fprint("read", f"getting anime names")
+        for malid in al_filter_anime(data, minimum_score, exclude_dropped, exclude_planned, exclude_anime):
+
+            for site, filename in api_parse(malid, download_HD, download_audio, ignore_already_downloaded, preferred_version, folder, banned_chars, only_ascii, max_file_lenght):
+
+                fprint("download", filename)
+                response = download_anime(site, filename, folder)
+                if response:
+                    fprint("Error", f"connection/API error: {response}") 
+                    
+    
+    else:
         data = open_export_file(export_file)
 
         fprint("read", f"reading file")
-        data = get_all_anime_data(data)
+        data = get_all_export_data(data)
 
         fprint("read", f"getting anime names")
-        for malid in filter_anime(data, minimum_score, exclude_dropped, exclude_planned, exclude_anime):
+        for malid in mal_export_filter_anime(data, minimum_score, exclude_dropped, exclude_planned, exclude_anime):
 
             for site, filename in api_parse(
                 malid, download_HD, download_audio, ignore_already_downloaded, 
@@ -152,21 +181,8 @@ def main(
                 if response:
                     fprint("Error", f"connection/API error: {response}")
 
-    else:
-        fprint("read", f"reading anime list of {mal_username}")
-        data = get_data_from_mal(mal_username)
 
-        fprint("read", f"getting anime names")
-        for malid in website_filter_anime(data, minimum_score, minimum_priority, exclude_dropped, exclude_planned, exclude_anime):
-
-            for site, filename in api_parse(malid, download_HD, download_audio, ignore_already_downloaded, preferred_version, folder, banned_chars, only_ascii, max_file_lenght):
-
-                fprint("download", filename)
-                response = download_anime(site, filename, folder)
-                if response:
-                    fprint("Error", f"connection/API error: {response}")
-
-
+ 
 def get_parser():
     
     parser = argparse.ArgumentParser(description="""
@@ -177,8 +193,10 @@ It then downloads it in either mp3 or webm file format, allowing you to get that
 """)
     parser.add_argument('-f', metavar='export', type=str, default=None,
                         help='MAL export file, can be zipped or unzipped.')
-    parser.add_argument('-u', metavar='username', type=str, default=None,
-                        help='MAL export file, can be zipped or unzipped.')
+    parser.add_argument('-mal', metavar='mal_username', type=str, default=None,
+                        help='MAL username, used to pull data from MAL')
+    parser.add_argument('-al', metavar='al_username', type=str, default=None,
+                        help='AniList username, used to pull data from AniList')
     parser.add_argument('-F', metavar='folder', type=str, default='.',
                         help='Folder to save the integers into.')
     parser.add_argument('--s', metavar='skip', type=bool, default=False, const=True, nargs='?',
@@ -186,13 +204,13 @@ It then downloads it in either mp3 or webm file format, allowing you to get that
     
     parser.add_argument('-m', metavar='min_score', type=int, default=0,
                         help='Minimum score that has to be given to a show to be downloaded.')
-    parser.add_argument('-p', metavar='min_priority', type=int, default=0,
-                        help='Minimum priority that has to be given to a show to be downloaded. (Low=1,Normal=2,High=3)')
+    parser.add_argument('-pr', metavar='min_priority', type=int, default=0,
+                        help='Minimum priority that has to be given to a show to be downloaded, only with MAL. (Low=1,Normal=2,High=3)')
     
     parser.add_argument('--d', metavar='dropped', type=bool, default=True, const=False, nargs='?',
                         help='Include anime that has been dropped')
     parser.add_argument('--p', metavar='planned', type=bool, default=True, const=False, nargs='?',
-                        help="Include anime that hasn't been watched yet.")
+                        help="Inclu de anime that hasn't been watched yet.")
     
     parser.add_argument('--a', metavar='audio', type=bool, default=False, const=True, nargs='?',
                         help='Download mp3 instead of video.')
@@ -219,10 +237,12 @@ def convert_args(args):
     if args.a and args.q:
         raise ValueError("Cannot download HD audio files.")
     
-    elif args.u:
+    elif args.mal:
         if args.f:
             raise ValueError("Cannot search myanimelist.net and read a file at the same time.")
-    elif args.p:
+        elif args.al:
+            raise ValueError("Cannot search MAL and read and export file at the same time")
+    elif args.pr:
         if args.f:
             raise ValueError("Cannot check priority with an exported anime list.")
         else:
@@ -230,11 +250,12 @@ def convert_args(args):
         
     return {
         'export_file': args.f,
-        'mal_username': args.u,
+        'mal_username': args.mal,
+        'al_username':args.al,
         'folder': args.F,
         'ignore_already_downloaded': args.s,
         'minimum_score': args.m,
-        'minimum_priority':args.p,
+        'minimum_priority':args.pr,
         'exclude_dropped': args.d,
         'exclude_planned': args.p,
         'exclude_anime': args.e,

@@ -45,7 +45,7 @@ def open_unzipped_export_file():
                 return file.read()
 
 
-def get_all_anime_data(xml_file):
+def get_all_export_data(xml_file):
     data = bs4.BeautifulSoup(xml_file, features="html.parser")
     return data.findAll("anime")
 
@@ -64,7 +64,7 @@ def convert_status(status):
     }[status]
 
 
-def filter_anime(
+def mal_export_filter_anime(
     animedata,
     minimum_score=0,
     exclude_dropped=True, exclude_planned=True,

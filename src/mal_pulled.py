@@ -31,7 +31,7 @@ def convert_priority(priority):
         "Low":1
     }[priority]
 
-def website_filter_anime(
+def mal_filter_anime(
     animedata,
     minimum_score=0, minimum_priority=0,
     exclude_dropped=True, exclude_planned=True,
