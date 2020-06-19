@@ -198,7 +198,7 @@ It then downloads it in either mp3 or webm file format, allowing you to get that
     parser.add_argument('-al', metavar='al_username', type=str, default=None,
                         help='AniList username, used to pull data from AniList')
     parser.add_argument('-F', metavar='folder', type=str, default='.',
-                        help='Folder to save the integers into.')
+                        help='Folder to save the songs into.')
     parser.add_argument('--s', metavar='skip', type=bool, default=False, const=True, nargs='?',
                         help='Skip songs that are already downloaded.')
     
