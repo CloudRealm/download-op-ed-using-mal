@@ -29,7 +29,7 @@ optional arguments:
   -f export             MAL export file, can be zipped or unzipped.
   -mal mal_username     MAL username, used to pull data from MAL
   -al al_username       AniList username, used to pull data from AniList
-  -F folder             Folder to save the integers into.
+  -F folder             Folder to save the songs into.
   --s [skip]            Skip songs that are already downloaded.
   -m min_score          Minimum score that has to be given to a show to be downloaded.
   -pr min_priority      Minimum priority that has to be given to a show to be downloaded, only with
